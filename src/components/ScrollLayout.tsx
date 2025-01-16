@@ -232,76 +232,32 @@ export default function ScrollLayout({ children, sidebar }: ScrollLayoutProps) {
     if (horizontalSection && sections.length > 0) {
       const isMobile = window.innerWidth < 768;
 
-      // if (isMobile) {
-      //   // Mobile-specific implementation with snap scrolling
-      //   const tl = gsap.timeline({
-      //     scrollTrigger: {
-      //       trigger: horizontalSection,
-      //       start: "top top",
-      //       end: () => `+=${window.innerWidth * (sections.length - 1)}`,
-      //       pin: true,
-      //       scrub: 1,
-      //       snap: {
-      //         snapTo: 1 / (sections.length - 1),
-      //         duration: { min: 0.2, max: 0.3 },
-      //         delay: 0,
-      //         ease: "power1.inOut",
-      //       },
-      //       id: "horizontal-scroll",
-      //       invalidateOnRefresh: true,
-      //       onUpdate: (self) => {
-      //         calculateProgress(self.progress, 0);
-
-      //         if (self.progress === 1) {
-      //           horizontalSection.style.pointerEvents = "none";
-      //         } else {
-      //           horizontalSection.style.pointerEvents = "auto";
-      //         }
-      //       },
-      //     },
-      //   });
-
       if (isMobile) {
-        // Enhanced mobile-specific implementation with smoother scrolling
+        // Implement tab-wise scrolling for mobile
         const tl = gsap.timeline({
           scrollTrigger: {
             trigger: horizontalSection,
             start: "top top",
-            end: () => `+=${window.innerWidth * (sections.length - 1)}`,
+            end: () => `+=${window.innerWidth * sections.length}`, // Adjusted end value
             pin: true,
-            scrub: 1.5, // Increased scrub value for smoother scrolling
+            scrub: true, // Enabled scrub for smoother control
             snap: {
-              snapTo: (value) => {
-                const st = ScrollTrigger.getById("horizontal-scroll");
-                const velocity = st ? Math.abs(st.getVelocity()) : 0;
-                if (velocity > 2500) {
-                  return Math.min(Math.floor(value * (sections.length - 1) + 2), sections.length - 1) / (sections.length - 1);
-                } else if (velocity > 1500) {
-                  return Math.min(Math.floor(value * (sections.length - 1) + 1), sections.length - 1) / (sections.length - 1);
-                }
-                return Math.round(value * (sections.length - 1)) / (sections.length - 1);
-              },
-              duration: 0.5,
-              delay: 0.1,
-              ease: "power1.inOut",
+              snapTo: 1 / (sections.length - 1),
+              duration: { min: 0.2, max: 0.3 },
+              delay: 0,
+              ease: "power1.inOut"
             },
-            preventOverlaps: true,
-            fastScrollEnd: false,
             onUpdate: (self) => {
-              // Prevent rapid scrolling by checking scroll velocity
-              if (Math.abs(self.getVelocity()) > 1000) {
-                self.scroll(self.scroll() - self.getVelocity() * 0.001);
-              }
+              calculateProgress(self.progress, 0);
             },
-            },
-          });
+          },
+        });
 
         tl.to(sections, {
           x: () => -(window.innerWidth * (sections.length - 1)),
           ease: "none",
           immediateRender: true,
         });
-        
       } else {
         // Enhanced desktop/tablet implementation
         let totalWidth = 0;
@@ -359,13 +315,16 @@ export default function ScrollLayout({ children, sidebar }: ScrollLayoutProps) {
           ScrollTrigger.refresh(true);
         }, 100);
       }
+
+      // Ensure each horizontal panel has full viewport width on mobile
+      horizontalSection.style.width = `${sections.length * 100}vw`;
     }
 
     // Improved vertical scroll listener
     const handleVerticalScroll = () => {
       const horizontalSectionHeight = window.innerHeight;
       const totalDocHeight = document.documentElement.scrollHeight;
-      const currentScroll = window.scrollY;
+      const currentScroll = window.scrollY; // Ensure this line exists
       const maxScroll = totalDocHeight - window.innerHeight;
 
       // Calculate overall progress as a percentage of total scrollable area
